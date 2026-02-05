@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import './screens/add_flower.dart';
+import './screens/list_flower.dart';
+import './screens/view_flower.dart';
 
 void main(){
   runApp(MyApp());
@@ -11,7 +13,9 @@ class MyApp extends StatelessWidget{
       title:"Flower App",
       initialRoute: '/',
       routes: {
-        '/': (context) => AddFlowerScreen(),
+        '/': (context) => ListFlowerScreen(),
+        '/add-flower': (context) => AddFlowerScreen(),
+        '/view-flower': (context) => ViewFlowerScreen(),
       },
     );
   }

@@ -1,6 +1,6 @@
 import '../models/flower.dart';
 import 'package:http/http.dart' as http;
-import '../utils/local_storage_service.dart';
+import '../utils/cloudinary_service.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -8,49 +8,6 @@ import 'dart:typed_data';
 class FlowerService{
 
     static String API_URL='http://localhost:4000/flowers';
-
-    static Future<Map<String,dynamic>> addFlower({
-        required name,
-        required description,
-        File? image,
-        File? pdf
-    })async{
-
-        String? imageUrl;
-        String? pdfUrl;
-
-        if(image!=null){
-            imageUrl=await LocalStorageService.saveImageFile(image);
-        }
-
-        if(pdf!=null){
-            pdfUrl=await LocalStorageService.savePdfFile(pdf);
-        }
-
-        final response=await http.post(
-            Uri.parse(API_URL),
-            headers:{'Content-Type':'application/json'},
-            body:jsonEncode({
-                'name':name,
-                'description':description,
-                'imageUrl':imageUrl,
-                'pdfUrl':pdfUrl
-            })
-        );
-
-        if(response.statusCode==201){
-            return jsonDecode(response.body);
-        }
-        else{
-           
-                await LocalStorageService.deleteImageFile(imageUrl!);
-           
-                await LocalStorageService.deletePdfFile(pdfUrl!);
-            
-
-            return jsonDecode(response.body);
-        }
-    }
 
     // Web / Chrome specific addFlower method - existing one remains unchanged
     static Future<Map<String, dynamic>> addFlowerWeb({
@@ -64,11 +21,11 @@ class FlowerService{
         String? pdfUrl;
 
         if (imageBytes != null) {
-            imageUrl = await LocalStorageService.saveImageBytesWeb(imageBytes);
+            imageUrl=await CloudinaryService.uploadImageBytesWeb(imageBytes);
         }
 
         if (pdfBytes != null) {
-            pdfUrl = await LocalStorageService.savePdfBytesWeb(pdfBytes);
+            pdfUrl = await CloudinaryService.uploadPdfBytesWeb(pdfBytes);
         }
 
         final response = await http.post(
@@ -86,14 +43,25 @@ class FlowerService{
             return jsonDecode(response.body);
         } else {
             if (imageUrl != null) {
-                await LocalStorageService.deleteImageBytesWeb(imageUrl);
+                await CloudinaryService.deleteImageBytesWeb(imageUrl);
             }
 
             if (pdfUrl != null) {
-                await LocalStorageService.deletePdfBytesWeb(pdfUrl);
+                await CloudinaryService.deletePdfBytesWeb(pdfUrl);
             }
 
             return jsonDecode(response.body);
+        }
+    }
+
+    static Future<List<Flower>> getFlowers() async{
+        final response=await http.get(Uri.parse(API_URL));
+        if(response.statusCode==200){
+            final List<dynamic> data=jsonDecode(response.body) as List<dynamic>;
+            return data.map<Flower>((flower)=>Flower.fromJson(flower as Map<String,dynamic>)).toList();
+        }
+        else{
+            throw Exception('Failed to load flowers');
         }
     }
 }

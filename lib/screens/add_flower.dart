@@ -14,36 +14,10 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
     final nameController=TextEditingController();
     final descriptionController=TextEditingController();
 
-    // Mobile / desktop (non-web) files
-    File? image;
-    File? pdf;
-
     // Web (Chrome) uploads as bytes
     Uint8List? webImageBytes;
     Uint8List? webPdfBytes;
     String? webPdfName;
-
-    void uploadImage() async {
-        final pickedImage=await ImagePicker().pickImage(source:ImageSource.gallery);
-        if(pickedImage!=null){
-            setState((){
-                image=File(pickedImage.path);
-            });
-        }
-    }
-
-    void uploadPdf() async {
-        FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: ['pdf'],
-        );
-
-        if (result != null) {
-            setState((){
-                pdf=File(result.files.single.path!);
-            });
-        }
-    }
 
     // Web (Chrome) specific upload functions - existing ones remain unchanged
     Future<void> uploadImageWeb() async {
@@ -76,16 +50,6 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
         }
     }
 
-    void addFlower() async{
-        final response=await FlowerService.addFlower(
-            name:nameController.text,
-            description:descriptionController.text,
-            image:image,
-            pdf:pdf
-        );   
-        print(response);
-    }
-
     void addFlowerWeb() async {
         final response = await FlowerService.addFlowerWeb(
             name: nameController.text,
@@ -94,6 +58,12 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
             pdfBytes: webPdfBytes,
         );
         print(response);
+        if(response['message']=="Flower added successfully"){
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content:Text('Flower added successfully'))
+            );
+            Navigator.of(context).pop();
+        }
     }
 
     Widget build(BuildContext context){
@@ -118,14 +88,6 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
                         )
                     ),
 
-                    // Mobile / non-web image upload
-                    ElevatedButton(
-                        child:Text('Upload Image'),
-                        onPressed:uploadImage
-                    ),
-                    if(image!=null)
-                    Image.file(File(image!.path),width:200,height:200,fit:BoxFit.cover),
-
                     // Web / Chrome image upload
                     ElevatedButton(
                         child:Text('Upload Image (Web)'),
@@ -138,15 +100,6 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
                         height: 200,
                         fit: BoxFit.cover,
                     ),
-
-                    // Mobile / non-web PDF upload
-                    ElevatedButton(
-                        child:Text('Upload Pdf'),
-                        onPressed:uploadPdf
-                    ),
-                    if(pdf!=null)
-                    Text('Pdf Path :- ${pdf!.path}'),
-
                     // Web / Chrome PDF upload
                     ElevatedButton(
                         child:Text('Upload Pdf (Web)'),
@@ -154,12 +107,6 @@ class AddFlowerScreenState extends State<AddFlowerScreen>{
                     ),
                     if (webPdfName != null)
                     Text('Pdf Name (Web) :- $webPdfName'),
-
-                    // Mobile / non-web Add Flower
-                    ElevatedButton(
-                        child:Text('Add Flower'),
-                        onPressed:addFlower
-                    ),
 
                     // Web / Chrome Add Flower
                     ElevatedButton(
