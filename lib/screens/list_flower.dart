@@ -46,14 +46,16 @@ class ListFlowerScreenState extends State<ListFlowerScreen>{
                                 ),
                                 IconButton(
                                     icon:Icon(Icons.edit),
-                                    onPressed:(){
-                                        
+                                    onPressed:() async{
+                                        await Navigator.of(context).pushNamed('/edit-flower',arguments:flower);
+                                        loadFlowers();
                                     }
                                 ),
                                 IconButton(
                                     icon:Icon(Icons.delete),
-                                    onPressed:(){
-                                        
+                                    onPressed:() async{
+                                        await FlowerService.deleteFlower(flower.id);
+                                        loadFlowers();
                                     }
                                 ),
                             ]
